@@ -5,11 +5,12 @@ export interface FileItem {
     id: string;
     name: string;
     content: string;
+    type: 'txt' | 'aex'; // file type
 }
 
 interface FileState {
     files: Record<string, FileItem>;
-    saveFile: (id: string, name: string, content: string) => void;
+    saveFile: (id: string, name: string, content: string, type?: 'txt' | 'aex') => void;
     deleteFile: (id: string) => void;
 }
 
@@ -17,12 +18,17 @@ export const useFileStore = create<FileState>()(
     persist(
         (set) => ({
             files: {
-                'welcome': { id: 'welcome', name: 'Welcome.txt', content: 'Welcome to CartoonOS! Try editing this file or creating new ones.' }
+                'welcome': {
+                    id: 'welcome',
+                    name: 'Welcome.txt',
+                    content: 'Welcome to CartoonOS!\n\nDouble-click desktop icons to open apps.\nUse the START menu to access all apps.\nOpen the App Store to install AEX apps!\nTry the Code Editor to build your own AEX apps.\n\n— The CartoonOS Team',
+                    type: 'txt'
+                }
             },
-            saveFile: (id, name, content) => set((state) => ({
+            saveFile: (id, name, content, type = 'txt') => set((state) => ({
                 files: {
                     ...state.files,
-                    [id]: { id, name, content }
+                    [id]: { id, name, content, type }
                 }
             })),
             deleteFile: (id) => set((state) => {
@@ -31,8 +37,6 @@ export const useFileStore = create<FileState>()(
                 return { files: newFiles };
             })
         }),
-        {
-            name: 'cartoonos-fs-storage'
-        }
+        { name: 'cartoonos-fs-storage' }
     )
 );
