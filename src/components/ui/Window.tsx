@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { X, Minus, Square } from 'lucide-react';
+import { X, Minus, Square, Maximize2 } from 'lucide-react';
 import { useOSStore } from '../../store/useOSStore';
 import { cn } from '../../utils/cn';
 
@@ -9,78 +9,94 @@ interface WindowProps {
     children: React.ReactNode;
 }
 
+// Stagger spawn positions so windows don't all appear at the same spot
+const SPAWN_OFFSETS: Record<string, { x: number; y: number }> = {};
+const getSpawnOffset = (id: string) => {
+    if (!SPAWN_OFFSETS[id]) {
+        const count = Object.keys(SPAWN_OFFSETS).length;
+        SPAWN_OFFSETS[id] = {
+            x: 60 + (count % 5) * 30,
+            y: 40 + (count % 4) * 30,
+        };
+    }
+    return SPAWN_OFFSETS[id];
+};
+
 export const Window: React.FC<WindowProps> = ({ id, children }) => {
     const { windows, focusWindow, closeWindow, minimizeWindow, maximizeWindow, focusedWindowId } = useOSStore();
+    const constraintRef = useRef(null);
 
     const windowData = windows[id];
     if (!windowData || !windowData.isOpen || windowData.isMinimized) return null;
 
     const isFocused = focusedWindowId === id;
-
-    const handlePointerDown = () => {
-        focusWindow(id);
-    };
+    const spawn = getSpawnOffset(id);
 
     return (
         <motion.div
             drag={!windowData.isMaximized}
-            dragConstraints={{ left: 0, top: 0, right: window.innerWidth - 100, bottom: window.innerHeight - 100 }}
+            dragConstraints={{ left: 0, top: 0, right: window.innerWidth - 120, bottom: window.innerHeight - 80 }}
             dragMomentum={false}
-            initial={{ scale: 0.9, opacity: 0 }}
+            dragElastic={0}
+            initial={{ scale: 0.85, opacity: 0, x: spawn.x, y: spawn.y }}
             animate={{
                 scale: 1,
                 opacity: 1,
-                width: windowData.isMaximized ? '100vw' : 600,
-                height: windowData.isMaximized ? 'calc(100vh - 4rem)' : 400, // Leave space for taskbar
-                top: windowData.isMaximized ? 0 : undefined,
-                left: windowData.isMaximized ? 0 : undefined,
+                width: windowData.isMaximized ? '100vw' : id === 'browser' ? 760 : 600,
+                height: windowData.isMaximized ? 'calc(100vh - 56px)' : id === 'terminal' ? 360 : id === 'browser' ? 500 : 420,
+                x: windowData.isMaximized ? 0 : undefined,
+                y: windowData.isMaximized ? 0 : undefined,
             }}
-            transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
-            onPointerDown={handlePointerDown}
-            style={{ zIndex: windowData.zIndex }}
+            transition={{ type: 'spring', bounce: 0.1, duration: 0.35 }}
+            onPointerDown={() => focusWindow(id)}
+            style={{ zIndex: windowData.zIndex, position: 'absolute' }}
             className={cn(
-                "absolute flex flex-col bg-white border-neo border-black shadow-neo rounded-xl overflow-hidden",
-                isFocused ? "shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]" : "shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] opacity-90",
-                windowData.isMaximized && "rounded-none border-b-0 border-x-0 shadow-none border-t-0"
+                "flex flex-col bg-white border-[3px] border-black rounded-xl overflow-hidden",
+                isFocused
+                    ? "shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
+                    : "shadow-[3px_3px_0px_0px_rgba(0,0,0,0.6)] opacity-95",
+                windowData.isMaximized && "rounded-none border-0 shadow-none"
             )}
         >
             {/* Title Bar */}
             <div
                 className={cn(
-                    "flex justify-between items-center px-4 py-2 border-b-neo border-black select-none",
+                    "flex justify-between items-center px-3 py-2 border-b-[3px] border-black select-none shrink-0 cursor-grab active:cursor-grabbing",
                     isFocused ? "bg-neo-blue" : "bg-gray-200"
                 )}
             >
-                <span className="font-bold text-black drop-shadow-[1px_1px_0_rgba(255,255,255,0.5)]">
-                    {windowData.title}
-                </span>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
+                    <span className="font-black text-black text-sm">{windowData.title}</span>
+                </div>
+
+                {/* Window control buttons */}
+                <div className="flex gap-1.5" onPointerDown={(e) => e.stopPropagation()}>
                     <button
-                        onPointerDown={(e) => e.stopPropagation()}
                         onClick={() => minimizeWindow(id)}
-                        className="w-6 h-6 flex items-center justify-center bg-neo-yellow border-2 border-black rounded shadow-[2px_2px_0_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+                        title="Minimize"
+                        className="w-5 h-5 flex items-center justify-center bg-neo-yellow border-2 border-black rounded shadow-[1px_1px_0_0_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all hover:brightness-90"
                     >
-                        <Minus size={14} strokeWidth={3} className="text-black" />
+                        <Minus size={10} strokeWidth={3} />
                     </button>
                     <button
-                        onPointerDown={(e) => e.stopPropagation()}
                         onClick={() => maximizeWindow(id)}
-                        className="w-6 h-6 flex items-center justify-center bg-neo-green border-2 border-black rounded shadow-[2px_2px_0_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+                        title={windowData.isMaximized ? 'Restore' : 'Maximize'}
+                        className="w-5 h-5 flex items-center justify-center bg-neo-green border-2 border-black rounded shadow-[1px_1px_0_0_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all hover:brightness-90"
                     >
-                        <Square size={12} strokeWidth={3} className="text-black" />
+                        {windowData.isMaximized ? <Square size={10} strokeWidth={3} /> : <Maximize2 size={10} strokeWidth={3} />}
                     </button>
                     <button
-                        onPointerDown={(e) => e.stopPropagation()}
                         onClick={() => closeWindow(id)}
-                        className="w-6 h-6 flex items-center justify-center bg-neo-red border-2 border-black rounded shadow-[2px_2px_0_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+                        title="Close"
+                        className="w-5 h-5 flex items-center justify-center bg-neo-red border-2 border-black rounded shadow-[1px_1px_0_0_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all hover:brightness-90"
                     >
-                        <X size={14} strokeWidth={3} className="text-black" />
+                        <X size={10} strokeWidth={3} />
                     </button>
                 </div>
             </div>
 
-            {/* Window Content */}
-            <div className="flex-1 overflow-auto bg-neo-bg">
+            {/* Content */}
+            <div className="flex-1 overflow-hidden" ref={constraintRef}>
                 {children}
             </div>
         </motion.div>

@@ -14,48 +14,57 @@ const APPS = [
     { id: 'settings', title: 'Settings', icon: Settings, color: 'bg-neo-green' },
 ];
 
+// Precompute background for wallpapers that can't be Tailwind classes (e.g. gradient)
+const WALLPAPER_FALLBACK = 'bg-[#fdfbf7] bg-[radial-gradient(#d1d5db_1px,transparent_1px)] [background-size:20px_20px]';
+
 export const Desktop: React.FC = () => {
     const { wallpaper, openWindow } = useOSStore();
 
-    const isUrl = wallpaper.startsWith('http') || wallpaper.startsWith('data:');
+    const isImageUrl = wallpaper.startsWith('http') || wallpaper.startsWith('data:');
 
     return (
         <div
             className={cn(
-                "flex flex-col h-screen w-screen overflow-hidden",
-                !isUrl && wallpaper
+                'flex flex-col h-screen w-screen overflow-hidden',
+                isImageUrl ? '' : (wallpaper || WALLPAPER_FALLBACK)
             )}
-            style={{
-                backgroundImage: isUrl ? `url(${wallpaper})` : undefined,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-            }}
+            style={
+                isImageUrl
+                    ? { backgroundImage: `url(${wallpaper})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                    : undefined
+            }
         >
-            {/* Desktop Area */}
-            <div className="flex-1 relative w-full h-full overflow-hidden p-6 flex flex-col gap-6 items-start">
-                {/* Desktop Icons */}
-                {APPS.map((app) => {
-                    const Icon = app.icon;
-                    return (
-                        <div
-                            key={app.id}
-                            className="flex flex-col items-center gap-1 cursor-pointer w-20 group"
-                            onDoubleClick={() => openWindow(app.id, app.title)}
-                        >
-                            <div className={cn("p-3 border-neo border-black shadow-[2px_2px_0_0_#000] rounded-xl group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-none transition-all", app.color)}>
-                                <Icon size={32} className="text-black" />
+            {/* Desktop Surface */}
+            <div className="flex-1 relative w-full overflow-hidden">
+                {/* Desktop Icon Grid — left column */}
+                <div className="absolute top-4 left-4 flex flex-col gap-3 z-10">
+                    {APPS.map((app) => {
+                        const Icon = app.icon;
+                        return (
+                            <div
+                                key={app.id}
+                                className="flex flex-col items-center gap-1 cursor-pointer w-[68px] group select-none"
+                                onDoubleClick={() => openWindow(app.id, app.title)}
+                            >
+                                <div className={cn(
+                                    'p-3 border-[3px] border-black shadow-[3px_3px_0_0_#000] rounded-xl',
+                                    'group-hover:scale-110 group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-none transition-all duration-150',
+                                    app.color
+                                )}>
+                                    <Icon size={28} className="text-black" />
+                                </div>
+                                <span className="font-bold text-black text-xs text-center drop-shadow-[1px_1px_0_rgba(255,255,255,0.9)] leading-tight">
+                                    {app.title}
+                                </span>
                             </div>
-                            <span className="font-bold text-black drop-shadow-[1px_1px_0_rgba(255,255,255,1)] text-center text-sm">
-                                {app.title}
-                            </span>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
+                </div>
 
-                {/* Window Manager */}
+                {/* Windows are rendered here */}
                 <WindowManager />
 
-                {/* Start Menu overlay */}
+                {/* Start Menu pops up from the desktop */}
                 <StartMenu />
 
                 {/* Desktop Pet */}
