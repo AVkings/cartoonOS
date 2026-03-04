@@ -8,7 +8,6 @@ import { Settings } from '../apps/Settings';
 import { AppStore } from '../apps/AppStore';
 import { CodeEditor } from '../apps/CodeEditor';
 import { AEXRunner } from '../apps/AEXRunner';
-import { useFileStore } from '../../store/useFileStore';
 
 // Static app registry for built-in apps
 const BUILT_INS: Record<string, React.FC> = {
@@ -22,7 +21,6 @@ const BUILT_INS: Record<string, React.FC> = {
 
 export const WindowManager: React.FC = () => {
     const { windows } = useOSStore();
-    const { files } = useFileStore();
 
     return (
         <>

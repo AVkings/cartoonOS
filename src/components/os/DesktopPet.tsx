@@ -12,8 +12,13 @@ export const DesktopPet: React.FC = () => {
     const [isJumping, setIsJumping] = useState(false);
     const [isScared, setIsScared] = useState(false);
     const [bobOffset, setBobOffset] = useState(0);
-    const dragStartPos = useRef({ x: 0, y: 0 });
     const messageTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const showMessage = (msg: string) => {
+        setMessage(msg);
+        if (messageTimeout.current) clearTimeout(messageTimeout.current);
+        messageTimeout.current = setTimeout(() => setMessage(null), 3500);
+    };
 
     // Idle bobbing
     useEffect(() => {
@@ -35,11 +40,6 @@ export const DesktopPet: React.FC = () => {
         return () => clearInterval(timer);
     }, []);
 
-    const showMessage = (msg: string) => {
-        setMessage(msg);
-        if (messageTimeout.current) clearTimeout(messageTimeout.current);
-        messageTimeout.current = setTimeout(() => setMessage(null), 3500);
-    };
 
     const handleClick = () => {
         const msg = MESSAGES_CLICK[Math.floor(Math.random() * MESSAGES_CLICK.length)];
@@ -138,7 +138,7 @@ export const DesktopPet: React.FC = () => {
                     {/* Cheek blush */}
                     <ellipse cx="21" cy="35" rx="5" ry="3" fill="#ff80ce" opacity="0.5" />
                     <ellipse cx="49" cy="35" rx="5" ry="3" fill="#ff80ce" opacity="0.5" />
-                    {/* Arms */>}
+                    {/* Arms */}
                     <ellipse cx="13" cy="46" rx="7" ry="5" fill="#FF90E8" stroke="black" strokeWidth="2.5" transform="rotate(-30 13 46)" />
                     <ellipse cx="57" cy="46" rx="7" ry="5" fill="#FF90E8" stroke="black" strokeWidth="2.5" transform="rotate(30 57 46)" />
                     {/* Expression emoji overlay */}

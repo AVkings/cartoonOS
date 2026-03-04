@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { buildAEXDocument, parseAEX, STORE_APPS } from '../../../utils/aexRuntime';
 import { useFileStore } from '../../../store/useFileStore';
 import { useOSStore } from '../../../store/useOSStore';
-import { cn } from '../../../utils/cn';
 import { ShoppingBag, Play, Download, CheckCircle, Code } from 'lucide-react';
 
 export const AppStore: React.FC = () => {

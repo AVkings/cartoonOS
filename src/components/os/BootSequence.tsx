@@ -5,26 +5,26 @@ interface Props {
     onComplete: () => void;
 }
 
+const bootMessages = [
+    "CARTOON_OS(tm) BIOS v1.02",
+    "Copyright (C) 1999-202X, ToonMegatrends, Inc.",
+    "",
+    "Main Processor : Intel(R) Toon(TM) CPU @ 4.20GHz",
+    "Memory Testing : 4194304K OK",
+    "",
+    "Detecting Primary Master ... TOON_DISK_0",
+    "Detecting Primary Slave ... None",
+    "",
+    "Loading GUI resources...",
+    "Applying neobrutalism shaders...",
+    "Waking up desktop pet...",
+    "",
+    "System Ready."
+];
+
 export const BootSequence: React.FC<Props> = ({ onComplete }) => {
     const [lines, setLines] = useState<string[]>([]);
     const [isDone, setIsDone] = useState(false);
-
-    const bootMessages = [
-        "CARTOON_OS(tm) BIOS v1.02",
-        "Copyright (C) 1999-202X, ToonMegatrends, Inc.",
-        "",
-        "Main Processor : Intel(R) Toon(TM) CPU @ 4.20GHz",
-        "Memory Testing : 4194304K OK",
-        "",
-        "Detecting Primary Master ... TOON_DISK_0",
-        "Detecting Primary Slave ... None",
-        "",
-        "Loading GUI resources...",
-        "Applying neobrutalism shaders...",
-        "Waking up desktop pet...",
-        "",
-        "System Ready."
-    ];
 
     useEffect(() => {
         let index = 0;

@@ -1,64 +1,62 @@
 export interface AEXMeta {
-    app: string;
-    version: string;
-    author: string;
-    icon: string;
-    description: string;
+  app: string;
+  version: string;
+  author: string;
+  icon: string;
+  description: string;
 }
 
 export interface ParsedAEX {
-    meta: AEXMeta;
-    style: string;
-    render: string;
-    script: string;
+  meta: AEXMeta;
+  style: string;
+  render: string;
+  script: string;
 }
 
 export function parseAEX(source: string): ParsedAEX {
-    const meta: AEXMeta = { app: 'Unknown', version: '1.0', author: 'Unknown', icon: '📦', description: '' };
+  const meta: AEXMeta = { app: 'Unknown', version: '1.0', author: 'Unknown', icon: '📦', description: '' };
 
-    // Parse @metadata lines
-    for (const line of source.split('\n')) {
-        const m = line.match(/^@(\w+)\s+"(.+?)"\s*$/);
-        if (m) {
-            const [, key, value] = m;
-            if (key in meta) (meta as Record<string, string>)[key] = value;
-        }
+  // Parse @metadata lines
+  for (const line of source.split('\n')) {
+    const m = line.match(/^@(\w+)\s+"(.+?)"\s*$/);
+    if (m) {
+      const [, key, value] = m;
+      if (key in meta) (meta as unknown as Record<string, string>)[key] = value;
     }
+  }
 
-    // Split by ---SECTION--- markers
-    const sectionPattern = /---(\w+)---/g;
-    const sections: Record<string, string> = {};
-    let cursor = 0;
-    let m: RegExpExecArray | null;
+  // Split by ---SECTION--- markers
+  const sectionPattern = /---(\w+)---/g;
+  const sections: Record<string, string> = {};
+  let m: RegExpExecArray | null;
 
-    while ((m = sectionPattern.exec(source)) !== null) {
-        const sectionName = m[1];
-        const start = m.index + m[0].length;
-        const nextMatch = sectionPattern.exec(source);
-        const end = nextMatch ? nextMatch.index : source.length;
-        sections[sectionName] = source.slice(start, end).trim();
-        if (nextMatch) sectionPattern.lastIndex = nextMatch.index; // reset
-        cursor = end;
+  while ((m = sectionPattern.exec(source)) !== null) {
+    const sectionName = m[1];
+    const start = m.index + m[0].length;
+    const nextMatch = sectionPattern.exec(source);
+    const end = nextMatch ? nextMatch.index : source.length;
+    sections[sectionName] = source.slice(start, end).trim();
+    if (nextMatch) sectionPattern.lastIndex = nextMatch.index; // reset
+  }
+
+  // Fallback: try simple split
+  if (Object.keys(sections).length === 0) {
+    const parts = source.split('---');
+    for (let i = 0; i < parts.length; i++) {
+      const key = parts[i].trim();
+      if (['STYLE', 'RENDER', 'SCRIPT'].includes(key)) {
+        sections[key] = parts[i + 1]?.trim() ?? '';
+      }
     }
+  }
 
-    // Fallback: try simple split
-    if (Object.keys(sections).length === 0) {
-        const parts = source.split('---');
-        for (let i = 0; i < parts.length; i++) {
-            const key = parts[i].trim();
-            if (['STYLE', 'RENDER', 'SCRIPT'].includes(key)) {
-                sections[key] = parts[i + 1]?.trim() ?? '';
-            }
-        }
-    }
-
-    return { meta, style: sections['STYLE'] ?? '', render: sections['RENDER'] ?? '', script: sections['SCRIPT'] ?? '' };
+  return { meta, style: sections['STYLE'] ?? '', render: sections['RENDER'] ?? '', script: sections['SCRIPT'] ?? '' };
 }
 
 export function buildAEXDocument(source: string): string {
-    const { style, render, script } = parseAEX(source);
+  const { style, render, script } = parseAEX(source);
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -106,9 +104,9 @@ ${script}
 // ─── Bundled AEX App Store apps ──────────────────────────────────────────────
 
 export const STORE_APPS: { id: string; source: string }[] = [
-    {
-        id: 'calc',
-        source: `@app "Calculator"
+  {
+    id: 'calc',
+    source: `@app "Calculator"
 @version "1.0"
 @author "CartoonOS"
 @icon "🔢"
@@ -157,10 +155,10 @@ function op(o){if(o==='+/-'){cur=String(parseFloat(cur)*-1);d().textContent=cur;
 function eq(){if(!oper||fresh)return;const a=parseFloat(prev),b=parseFloat(cur);let r;if(oper==='+')r=a+b;else if(oper==='-')r=a-b;else if(oper==='*')r=a*b;else if(oper==='/')r=b===0?'ERR':a/b;cur=String(r);d().textContent=cur;oper='';fresh=true;}
 function c(){cur='0';prev='';oper='';fresh=true;d().textContent='0';}
 `
-    },
-    {
-        id: 'paint',
-        source: `@app "MiniPaint"
+  },
+  {
+    id: 'paint',
+    source: `@app "MiniPaint"
 @version "1.0"
 @author "CartoonOS"
 @icon "🎨"
@@ -199,10 +197,10 @@ canvas.onmousedown=e=>{drawing=true;ctx.beginPath();ctx.moveTo(e.offsetX,e.offse
 canvas.onmousemove=e=>{if(!drawing)return;ctx.lineWidth=tool==='eraser'?sz*4:sz;ctx.lineCap='round';ctx.strokeStyle=tool==='eraser'?'#f0f0f0':document.getElementById('color').value;ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke();};
 canvas.onmouseup=canvas.onmouseleave=()=>drawing=false;
 `
-    },
-    {
-        id: 'snake',
-        source: `@app "Snake Game"
+  },
+  {
+    id: 'snake',
+    source: `@app "Snake Game"
 @version "1.0"
 @author "CartoonOS"
 @icon "🐍"
@@ -252,10 +250,10 @@ document.addEventListener('keydown',e=>{
 });
 placeFood();draw();
 `
-    },
-    {
-        id: 'clock',
-        source: `@app "World Clock"
+  },
+  {
+    id: 'clock',
+    source: `@app "World Clock"
 @version "1.0"
 @author "CartoonOS"
 @icon "🕐"
@@ -298,10 +296,10 @@ function draw(){
 }
 setInterval(draw,1000);draw();
 `
-    },
-    {
-        id: 'hello',
-        source: `@app "Hello World Template"
+  },
+  {
+    id: 'hello',
+    source: `@app "Hello World Template"
 @version "1.0"
 @author "CartoonOS"
 @icon "👋"
@@ -344,5 +342,5 @@ function reset() {
 
 print('Hello World app loaded!');
 `
-    }
+  }
 ];

@@ -28,12 +28,10 @@ const getSize = (id: string) => {
 // Calculate centered + cascaded spawn position
 // NOTE: We use a module-level counter that increments per unique window id opened in this session
 const seen: Set<string> = new Set();
-let spawnCount = 0;
 
 const getSpawnPos = (id: string, w: number, h: number) => {
     if (!seen.has(id)) {
         seen.add(id);
-        spawnCount++;
     }
     const idx = [...seen].indexOf(id);
     const cascade = (idx % 8) * 26;

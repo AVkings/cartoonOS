@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useOSStore } from '../../store/useOSStore';
 import { WindowManager } from './WindowManager';

@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { buildAEXDocument, parseAEX, STORE_APPS } from '../../../utils/aexRuntime';
+import React, { useState } from 'react';
+import { buildAEXDocument, parseAEX } from '../../../utils/aexRuntime';
 import { useFileStore } from '../../../store/useFileStore';
 import { Save, Play, FileCode, Info, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -65,24 +65,23 @@ print('App loaded!');
 
 export const CodeEditor: React.FC<{ fileId?: string }> = ({ fileId }) => {
     const { files, saveFile } = useFileStore();
-    const [code, setCode] = useState(() => {
-        if (fileId && files[fileId]) return files[fileId].content;
-        return STARTER_TEMPLATE;
-    });
+
+    // Initial content and name computed during first render
+    const initialCode = fileId && files[fileId] ? files[fileId].content : STARTER_TEMPLATE;
+    const initialName = fileId && files[fileId] ? files[fileId].name : 'my_app.aex';
+
+    const [code, setCode] = useState(initialCode);
     const [previewHtml, setPreviewHtml] = useState('');
     const [showPreview, setShowPreview] = useState(false);
-    const [fileName, setFileName] = useState(() => {
-        if (fileId && files[fileId]) return files[fileId].name;
-        return 'my_app.aex';
-    });
+    const [fileName, setFileName] = useState(initialName);
     const [saved, setSaved] = useState(true);
     const [showSyntax, setShowSyntax] = useState(false);
-    const iframeKey = useRef(0);
+    const [iframeVersion, setIframeVersion] = useState(0);
 
     const meta = parseAEX(code);
 
     const handleRun = () => {
-        iframeKey.current++;
+        setIframeVersion(v => v + 1);
         setPreviewHtml(buildAEXDocument(code));
         setShowPreview(true);
     };
@@ -152,9 +151,7 @@ export const CodeEditor: React.FC<{ fileId?: string }> = ({ fileId }) => {
                 )}
             </div>
 
-            {/* Editor + Preview Split */}
             <div className="flex flex-1 overflow-hidden">
-                {/* Code Editor */}
                 <div className="flex-1 flex flex-col overflow-hidden">
                     <textarea
                         className="flex-1 w-full p-4 font-mono text-sm bg-gray-950 text-green-300 resize-none outline-none leading-relaxed caret-green-400"
@@ -166,14 +163,12 @@ export const CodeEditor: React.FC<{ fileId?: string }> = ({ fileId }) => {
                         autoCapitalize="off"
                         placeholder="Write your AEX code here..."
                     />
-                    {/* Status bar */}
                     <div className="flex items-center justify-between px-3 py-1 border-t-2 border-black bg-gray-800 text-green-400 text-xs font-mono shrink-0">
                         <span>AEX · {code.split('\n').length} lines · {code.length} chars</span>
                         <span>{saved ? '✓ saved' : '● unsaved'}</span>
                     </div>
                 </div>
 
-                {/* Preview Panel */}
                 {showPreview && (
                     <div className="w-1/2 border-l-[3px] border-black flex flex-col shrink-0">
                         <div className="flex justify-between items-center px-3 py-2 bg-neo-yellow border-b-[3px] border-black shrink-0">
@@ -181,7 +176,7 @@ export const CodeEditor: React.FC<{ fileId?: string }> = ({ fileId }) => {
                             <button onClick={() => setShowPreview(false)} className="font-black text-lg leading-none">✕</button>
                         </div>
                         <iframe
-                            key={iframeKey.current}
+                            key={iframeVersion}
                             srcDoc={previewHtml}
                             className="flex-1 border-none w-full"
                             sandbox="allow-scripts allow-same-origin allow-forms"

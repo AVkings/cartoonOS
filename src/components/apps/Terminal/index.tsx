@@ -105,8 +105,8 @@ export const Terminal: React.FC = () => {
                         `  OS:        CartoonOS v2.0`,
                         `  Browser:   ${navigator.userAgent.split('(')[0].trim()}`,
                         `  Platform:  ${navigator.platform}`,
-                        `  RAM:       ${(performance as any).memory?.jsHeapSizeLimit
-                            ? Math.round((performance as any).memory.jsHeapSizeLimit / 1024 / 1024) + ' MB JS Heap'
+                        `  RAM:       ${(performance as unknown as { memory?: { jsHeapSizeLimit: number } }).memory?.jsHeapSizeLimit
+                            ? Math.round((performance as unknown as { memory: { jsHeapSizeLimit: number } }).memory.jsHeapSizeLimit / 1024 / 1024) + ' MB JS Heap'
                             : 'N/A'}`,
                         `  Time:      ${new Date().toLocaleTimeString()}`,
                     ].join('\n')
