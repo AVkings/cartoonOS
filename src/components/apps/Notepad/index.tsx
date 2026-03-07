@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useFileStore, FileItem } from '../../../store/useFileStore';
+import { useFileStore } from '../../../store/useFileStore';
+import type { FileItem } from '../../../store/useFileStore';
 import { FilePlus, Trash2, Save, File } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 

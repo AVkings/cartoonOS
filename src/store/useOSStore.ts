@@ -16,6 +16,8 @@ interface OSState {
     highestZIndex: number;
     isStartMenuOpen: boolean;
     wallpaper: string;
+    /** IDs of apps that should appear as extra desktop icons (e.g. downloaded games/apps). */
+    pinnedApps: string[];
     openWindow: (id: string, title?: string) => void;
     closeWindow: (id: string) => void;
     minimizeWindow: (id: string) => void;
@@ -23,6 +25,8 @@ interface OSState {
     focusWindow: (id: string) => void;
     toggleStartMenu: () => void;
     setWallpaper: (url: string) => void;
+    pinApp: (id: string) => void;
+    unpinApp: (id: string) => void;
 }
 
 export const useOSStore = create<OSState>()(
@@ -33,8 +37,17 @@ export const useOSStore = create<OSState>()(
             highestZIndex: 10, // Start from 10 so OS elements like taskbar can be correctly layered
             isStartMenuOpen: false,
             wallpaper: 'bg-[radial-gradient(#d1d5db_1px,transparent_1px)] [background-size:20px_20px]',
+            pinnedApps: [],
 
             setWallpaper: (url) => set({ wallpaper: url }),
+
+            pinApp: (id) => set((state) => ({
+                pinnedApps: state.pinnedApps.includes(id) ? state.pinnedApps : [...state.pinnedApps, id],
+            })),
+
+            unpinApp: (id) => set((state) => ({
+                pinnedApps: state.pinnedApps.filter(appId => appId !== id),
+            })),
 
             toggleStartMenu: () => set((state) => ({ isStartMenuOpen: !state.isStartMenuOpen })),
 
@@ -121,5 +134,6 @@ export const useOSStore = create<OSState>()(
             },
         }), {
         name: 'cartoonos-storage',
-        partialize: (state) => ({ wallpaper: state.wallpaper })
+        // Persist wallpaper + pinned apps so the desktop feels consistent between sessions.
+        partialize: (state) => ({ wallpaper: state.wallpaper, pinnedApps: state.pinnedApps })
     }));

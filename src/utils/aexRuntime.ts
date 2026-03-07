@@ -25,27 +25,29 @@ export function parseAEX(source: string): ParsedAEX {
     }
   }
 
-  // Split by ---SECTION--- markers
-  const sectionPattern = /---(\w+)---/g;
+  // Split by ---SECTION--- markers in a single forward scan (no manual lastIndex rewinding)
   const sections: Record<string, string> = {};
-  
-  // Find all markers and their positions
-  const markers: { name: string; start: number; end: number }[] = [];
+  const markers: { name: string; start: number; contentStart: number }[] = [];
+  const re = /---(\w+)---/g;
   let match: RegExpExecArray | null;
-  while ((match = sectionPattern.exec(source)) !== null) {
-    markers.push({ name: match[1], start: match.index, end: match.index + match[0].length });
+
+  while ((match = re.exec(source)) !== null) {
+    markers.push({
+      name: match[1],
+      start: match.index,
+      contentStart: re.lastIndex,
+    });
   }
 
-  // Extract content between markers
-  for (let i = 0; i < markers.length; i++) {
-    const current = markers[i];
-    const next = markers[i + 1];
-    const contentEnd = next ? next.start : source.length;
-    sections[current.name] = source.slice(current.end, contentEnd).trim();
-  }
-
-  // Fallback: try simple split
-  if (Object.keys(sections).length === 0) {
+  if (markers.length > 0) {
+    for (let i = 0; i < markers.length; i++) {
+      const current = markers[i];
+      const next = markers[i + 1];
+      const end = next ? next.start : source.length;
+      sections[current.name] = source.slice(current.contentStart, end).trim();
+    }
+  } else {
+    // Fallback: very old/simple syntax using literal ---STYLE--- blocks
     const parts = source.split('---');
     for (let i = 0; i < parts.length; i++) {
       const key = parts[i].trim();
@@ -76,6 +78,9 @@ body{font-family:'Nunito',system-ui,sans-serif;background:#FDFBF7;color:#000;min
 .neo-card{border:3px solid #000;box-shadow:4px 4px 0 #000;background:#fff;padding:16px;}
 #_aex_console{position:fixed;bottom:0;left:0;right:0;max-height:100px;overflow-y:auto;background:#111;color:#0f0;font-family:monospace;font-size:12px;padding:4px 8px;display:none;z-index:9999;}
 #_aex_console.on{display:block;}
+/* Fun AEX boop animation */
+@keyframes aex-boop-shake{0%{transform:translate(0,0) rotate(0deg);}20%{transform:translate(-2px,2px) rotate(-1deg);}40%{transform:translate(2px,-2px) rotate(1deg);}60%{transform:translate(-2px,1px) rotate(-1deg);}80%{transform:translate(2px,0) rotate(1deg);}100%{transform:translate(0,0) rotate(0deg);}}
+.aex-boop{animation:aex-boop-shake 0.35s linear 1;}
 ${style}
 </style>
 </head>
@@ -83,23 +88,39 @@ ${style}
 ${render}
 <div id="_aex_console"></div>
 <script>
-// ===== AEX Runtime API =====
+// ===== AEX Runtime API (CartoonScript) =====
 const aex = {
-  title: (t) => document.title = t,
+  // Window helpers
+  title: (t) => document.title = String(t),
   alert: (t) => alert(String(t)),
-  log: (t) => { 
+  // Console-style logging bar
+  log: (t) => {
     const c = document.getElementById('_aex_console');
+    if (!c) return;
     c.classList.add('on');
     c.innerHTML += '<div>&gt; ' + String(t) + '</div>';
     c.scrollTop = c.scrollHeight;
   },
+  // Fun blooper: shake the whole app
+  boop: () => {
+    const body = document.body;
+    if (!body) return;
+    body.classList.remove('aex-boop');
+    void body.offsetWidth; // force reflow so animation can retrigger
+    body.classList.add('aex-boop');
+  },
+  // Simple random helpers
+  random: (min = 0, max = 1) => min + Math.random() * (max - min),
+  choice: (arr) => Array.isArray(arr) && arr.length ? arr[Math.floor(Math.random() * arr.length)] : null,
+  // Color palette
   color: { pink:'#FF90E8', blue:'#90C2FF', yellow:'#FFDE90', green:'#90FF90', red:'#FF9090' }
 };
-// Python-style aliases
+// Python-style / playful aliases
 function print(t) { aex.log(t); }
 const True = true, False = false, None = null;
 function range(n) { return [...Array(n).keys()]; }
 
+// User script
 ${script}
 </script>
 </body>

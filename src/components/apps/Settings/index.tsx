@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Palette, HelpCircle, Image as ImageIcon, Monitor } from 'lucide-react';
+import { Palette, HelpCircle, Image as ImageIcon, Monitor, Trash2, AppWindow } from 'lucide-react';
 import { useOSStore } from '../../../store/useOSStore';
+import { useFileStore } from '../../../store/useFileStore';
 import { cn } from '../../../utils/cn';
+import { parseAEX, STORE_APPS } from '../../../utils/aexRuntime';
 
 const WALLPAPERS = [
     { label: '🎨 Dot Grid (Default)', value: 'bg-neo-bg bg-[radial-gradient(#d1d5db_1px,transparent_1px)] [background-size:20px_20px]' },
@@ -18,6 +20,7 @@ const WALLPAPERS = [
 
 export const Settings: React.FC = () => {
     const { wallpaper, setWallpaper } = useOSStore();
+    const { files, deleteFile } = useFileStore();
     const [customUrl, setCustomUrl] = useState('');
 
     const handleReboot = () => window.location.reload();
@@ -106,6 +109,57 @@ export const Settings: React.FC = () => {
                     <button onClick={triggerBsod} className="neo-btn bg-neo-red py-2 w-full text-left px-4 font-bold">
                         💥 Trigger Cartoon BSOD
                     </button>
+                </div>
+            </section>
+
+            {/* Apps management */}
+            <section className="bg-white p-4 border-neo border-black shadow-neo rounded-xl flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                    <AppWindow size={22} />
+                    <h2 className="text-xl font-bold">Apps</h2>
+                </div>
+                <p className="text-xs font-semibold text-gray-600">
+                    View all installed AEX apps. System apps are protected; you can remove your own imported apps here.
+                </p>
+                <div className="max-h-60 overflow-y-auto border-2 border-black rounded-lg bg-gray-50">
+                    {Object.values(files).filter(f => f.type === 'aex').length === 0 && (
+                        <p className="text-xs font-semibold text-gray-500 p-3">
+                            No AEX apps installed yet. Install one from the App Store!
+                        </p>
+                    )}
+                    {Object.values(files)
+                        .filter(f => f.type === 'aex')
+                        .map(f => {
+                            const meta = parseAEX(f.content).meta;
+                            const isStoreDefault = !!STORE_APPS.find(a => `aex_${a.id}` === f.id);
+                            return (
+                                <div
+                                    key={f.id}
+                                    className="flex items-center justify-between px-3 py-2 border-b border-black/10 text-xs bg-white last:border-b-0"
+                                >
+                                    <div className="flex flex-col">
+                                        <span className="font-black">
+                                            {meta.icon} {meta.app || f.name.replace(/\.aex$/i, '')}
+                                        </span>
+                                        <span className="text-[10px] text-gray-500">
+                                            {isStoreDefault ? 'System app (App Store)' : f.name}
+                                        </span>
+                                    </div>
+                                    {isStoreDefault ? (
+                                        <span className="text-[10px] font-bold text-gray-500">
+                                            Protected
+                                        </span>
+                                    ) : (
+                                        <button
+                                            onClick={() => deleteFile(f.id)}
+                                            className="neo-btn bg-neo-red px-2 py-1 text-[10px] flex items-center gap-1"
+                                        >
+                                            <Trash2 size={10} /> Delete
+                                        </button>
+                                    )}
+                                </div>
+                            );
+                        })}
                 </div>
             </section>
         </div>

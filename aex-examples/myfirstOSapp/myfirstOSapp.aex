@@ -1,0 +1,253 @@
+@app "CartoonStudio"
+@version "1.0"
+@author "AVkings"
+@icon "🎬"
+@description "Storyboard your own cartoon scenes with movable panels, notes, and goofy boops."
+
+---STYLE---
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  padding:24px;
+  gap:16px;
+  background:#FFDE90;
+  font-family:'Nunito',system-ui,sans-serif;
+}
+.board{
+  max-width:900px;
+  width:100%;
+  background:#fff;
+  border:4px solid #000;
+  box-shadow:8px 8px 0 #000;
+  border-radius:18px;
+  padding:18px;
+}
+.board-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+.title{
+  font-size:24px;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.title span.icon{
+  font-size:28px;
+}
+.tray{
+  display:flex;
+  gap:8px;
+}
+.pill{
+  border:3px solid #000;
+  border-radius:999px;
+  padding:4px 10px;
+  font-size:11px;
+  font-weight:800;
+  background:#FF90E8;
+}
+.pill.gray{
+  background:#e5e7eb;
+}
+.panels{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.panel{
+  background:#f9fafb;
+  border:3px solid #000;
+  border-radius:14px;
+  box-shadow:4px 4px 0 #000;
+  padding:8px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.panel-canvas{
+  height:90px;
+  border:2px dashed #000;
+  border-radius:10px;
+  background:repeating-conic-gradient(from 45deg,#fff 0deg 30deg,#facc15 30deg 60deg);
+  position:relative;
+  overflow:hidden;
+}
+.char{
+  position:absolute;
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  border:3px solid #000;
+  background:#FF90E8;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+}
+.panel-note{
+  font-size:11px;
+  font-weight:700;
+}
+.panel-actions{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:2px;
+}
+.btn{
+  border:3px solid #000;
+  box-shadow:3px 3px 0 #000;
+  padding:5px 10px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:800;
+  background:#90C2FF;
+  cursor:pointer;
+}
+.btn:active{
+  transform:translate(2px,2px);
+  box-shadow:none;
+}
+.btn.secondary{
+  background:#e5e7eb;
+}
+.log{
+  max-width:900px;
+  width:100%;
+  border:3px solid #000;
+  border-radius:12px;
+  padding:8px 10px;
+  background:#111827;
+  color:#e5e7eb;
+  font-family:monospace;
+  font-size:11px;
+  max-height:90px;
+  overflow-y:auto;
+}
+.log-entry{
+  margin-bottom:2px;
+}
+
+---RENDER---
+<div class="board">
+  <div class="board-header">
+    <div class="title">
+      <span class="icon">🎬</span>
+      <div>
+        <div>CartoonStudio</div>
+        <div style="font-size:11px;font-weight:700;opacity:.7;">Storyboard playground for CartoonOS</div>
+      </div>
+    </div>
+    <div class="tray">
+      <div class="pill">Scenes: <span id="scene-count">3</span></div>
+      <div class="pill gray">Tip: double‑click panel to boop!</div>
+    </div>
+  </div>
+
+  <div class="panels">
+    <div class="panel" data-id="1" ondblclick="boopPanel(1)">
+      <div class="panel-canvas">
+        <div class="char" style="left:12px;top:40px;">🤖</div>
+        <div class="char" style="right:16px;top:20px;background:#90FF90;">😺</div>
+      </div>
+      <div class="panel-note" id="note-1">Robot meets a mysterious cat in Neo‑City.</div>
+      <div class="panel-actions">
+        <button class="btn" onclick="shuffle(1)">Shuffle</button>
+        <button class="btn secondary" onclick="rewrite(1)">Rewrite</button>
+      </div>
+    </div>
+
+    <div class="panel" data-id="2" ondblclick="boopPanel(2)">
+      <div class="panel-canvas">
+        <div class="char" style="left:22px;top:18px;background:#FF9090;">🦄</div>
+        <div class="char" style="right:22px;bottom:18px;background:#90C2FF;">🤯</div>
+      </div>
+      <div class="panel-note" id="note-2">They accidentally open a portal to the CartoonOS desktop.</div>
+      <div class="panel-actions">
+        <button class="btn" onclick="shuffle(2)">Shuffle</button>
+        <button class="btn secondary" onclick="rewrite(2)">Rewrite</button>
+      </div>
+    </div>
+
+    <div class="panel" data-id="3" ondblclick="boopPanel(3)">
+      <div class="panel-canvas">
+        <div class="char" style="left:30px;bottom:20px;background:#FFDE90;">🧠</div>
+        <div class="char" style="right:24px;top:26px;background:#FF90E8;">🎧</div>
+      </div>
+      <div class="panel-note" id="note-3">Brainstorming the next ridiculous OS feature.</div>
+      <div class="panel-actions">
+        <button class="btn" onclick="shuffle(3)">Shuffle</button>
+        <button class="btn secondary" onclick="rewrite(3)">Rewrite</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="log" id="studio-log"></div>
+
+---SCRIPT---
+const LINES = [
+  "The cat suggests installing 37 calculators.",
+  "Robot proposes a \"random boop\" button for every window.",
+  "Someone accidentally launches 12 terminals at once.",
+  "They discover an undocumented aex.boop() combo.",
+  "A portal opens to a universe made of sticky notes.",
+];
+
+const REWRITES = [
+  "Scene pitch accepted. Needs more sparkles.",
+  "Director note: make it 200% sillier.",
+  "Plot twist: it was all running inside an iframe.",
+  "New requirement: every click should do something funny.",
+  "User feedback: \"I have no idea what's happening but I love it.\"",
+];
+
+function logStudio(text) {
+  const box = document.getElementById("studio-log");
+  if (!box) return;
+  const row = document.createElement("div");
+  row.className = "log-entry";
+  const now = new Date();
+  const ts = now.toLocaleTimeString();
+  row.textContent = "[" + ts + "] " + text;
+  box.appendChild(row);
+  box.scrollTop = box.scrollHeight;
+  print(text);
+}
+
+function randomLine(list) {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+function shuffle(id) {
+  const note = document.getElementById("note-" + id);
+  if (!note) return;
+  const text = randomLine(LINES);
+  note.textContent = text;
+  logStudio("Scene " + id + " shuffled: " + text);
+  aex.boop();
+}
+
+function rewrite(id) {
+  const note = document.getElementById("note-" + id);
+  if (!note) return;
+  const text = randomLine(REWRITES);
+  note.textContent = text;
+  logStudio("Scene " + id + " rewrite: " + text);
+}
+
+function boopPanel(id) {
+  logStudio("Panel " + id + " got double‑clicked. Dramatic zoom!");
+  aex.boop();
+}
+
+logStudio("CartoonStudio loaded. Double‑click panels or press Shuffle/Rewrite to play.");
+

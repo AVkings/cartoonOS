@@ -163,10 +163,12 @@ export const CodeEditor: React.FC<{ fileId?: string }> = ({ fileId }) => {
                         <div><span className="text-blue-600">---STYLE---</span> — CSS block</div>
                         <div><span className="text-blue-600">---RENDER---</span> — HTML block</div>
                         <div><span className="text-blue-600">---SCRIPT---</span> — JS block</div>
-                        <div><span className="text-orange-600">print(text)</span> — console log</div>
-                        <div><span className="text-orange-600">aex.alert(text)</span> — dialog</div>
-                        <div><span className="text-orange-600">aex.color.pink</span> — palette</div>
-                        <div><span className="text-gray-500">True / False / None</span> — aliases</div>
+                        <div><span className="text-orange-600">print(text)</span> — console log bar</div>
+                        <div><span className="text-orange-600">aex.alert(text)</span> — dialog popup</div>
+                        <div><span className="text-orange-600">aex.boop()</span> — goofy screen shake</div>
+                        <div><span className="text-orange-600">aex.random(a,b)</span> — random number</div>
+                        <div><span className="text-orange-600">aex.color.pink</span> — color palette</div>
+                        <div><span className="text-gray-500">True / False / None</span> — Python-style aliases</div>
                     </div>
                 )}
             </div>

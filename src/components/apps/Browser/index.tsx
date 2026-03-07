@@ -60,11 +60,34 @@ export const Browser: React.FC = () => {
         e.preventDefault();
         let target = active.inputValue.trim();
         if (!target) return;
+
+        // If user typed a plain word, treat it as a search and use an embeddable search engine
         if (!target.includes('.') && !target.startsWith('http')) {
-            target = `https://www.google.com/search?q=${encodeURIComponent(target)}`;
+            target = `https://duckduckgo.com/html/?q=${encodeURIComponent(target)}`;
         } else if (!target.startsWith('http')) {
             target = 'https://' + target;
         }
+
+        // Some sites (like Google) refuse to run inside iframes.
+        // If we detect those, open a real browser tab instead of hanging the in-OS browser.
+        try {
+            const urlObj = new URL(target);
+            const host = urlObj.hostname.toLowerCase();
+            if (host.endsWith('google.com')) {
+                window.open(target, '_blank', 'noopener,noreferrer');
+                update(active.id, {
+                    url: target,
+                    inputValue: target,
+                    loading: false,
+                    error: true,
+                    title: 'Opened in real browser',
+                });
+                return;
+            }
+        } catch {
+            // If URL parsing fails we still try to load it normally.
+        }
+
         update(active.id, { url: target, inputValue: target, loading: true, error: false, title: 'Loading…' });
     };
 
