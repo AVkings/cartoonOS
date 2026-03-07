@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOSStore } from '../../store/useOSStore';
+import { useFileStore } from '../../store/useFileStore';
 import { Power, FileText, Terminal, Settings, Globe, ShoppingBag, Code, RotateCcw } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
@@ -15,6 +16,10 @@ const APPS = [
 
 export const StartMenu: React.FC = () => {
     const { isStartMenuOpen, toggleStartMenu, openWindow } = useOSStore();
+
+    // Combined list: built-ins and installed AEX apps
+    const { files } = useFileStore();
+    const installedAEX = Object.values(files).filter(f => f.type === 'aex');
 
     return (
         <AnimatePresence>
@@ -35,16 +40,20 @@ export const StartMenu: React.FC = () => {
                         exit={{ y: 30, opacity: 0, scale: 0.97 }}
                         transition={{ type: 'spring', bounce: 0, duration: 0.28 }}
                         className="absolute bottom-16 left-3 w-68 bg-white border-[3px] border-black shadow-[6px_6px_0_0_#000] rounded-xl overflow-hidden z-[9991]"
-                        style={{ width: 256 }}
+                        style={{ width: 280 }}
                     >
                         {/* Header */}
                         <div className="bg-neo-pink px-4 py-3 border-b-[3px] border-black">
                             <h2 className="text-2xl font-black">⚡ CartoonOS</h2>
-                            <p className="text-xs font-semibold opacity-70">All Applications</p>
+                            <p className="text-xs font-semibold opacity-70 flex justify-between">
+                                <span>All Applications</span>
+                                <span>v1.0.2</span>
+                            </p>
                         </div>
 
                         {/* App list */}
-                        <div className="flex flex-col p-2 gap-1">
+                        <div className="flex flex-col p-2 gap-1 max-h-[400px] overflow-y-auto">
+                            <p className="px-2 py-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Built-in</p>
                             {APPS.map((app) => {
                                 const Icon = app.icon;
                                 return (
@@ -63,6 +72,33 @@ export const StartMenu: React.FC = () => {
                                     </button>
                                 );
                             })}
+
+                            {installedAEX.length > 0 && (
+                                <>
+                                    <div className="border-t-2 border-black/10 my-1 mx-2" />
+                                    <p className="px-2 py-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Installed (AEX)</p>
+                                    {installedAEX.map((app) => {
+                                        return (
+                                            <button
+                                                key={app.id}
+                                                onClick={() => {
+                                                    openWindow(app.id, app.name.replace('.aex', ''));
+                                                    toggleStartMenu();
+                                                }}
+                                                className="flex items-center gap-3 w-full px-2 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors active:bg-gray-200 group"
+                                            >
+                                                <div className={cn('w-10 h-10 flex items-center justify-center border-2 border-black rounded-lg shadow-[2px_2px_0_0_#000] group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:shadow-none transition-all bg-neo-yellow text-xl')}>
+                                                    📦
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className="font-bold text-base leading-tight truncate">{app.name.replace('.aex', '')}</span>
+                                                    <span className="text-[10px] font-semibold opacity-60 uppercase tracking-tighter">AEX Package</span>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </>
+                            )}
                         </div>
 
                         {/* Footer */}

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useFileStore } from '../../../store/useFileStore';
+import { cn } from '../../../utils/cn';
 
 type HistoryLine = { type: 'input' | 'output' | 'error' | 'info'; text: string };
 
@@ -98,20 +99,22 @@ export const Terminal: React.FC = () => {
                 break;
             }
 
-            case 'sysinfo':
+            case 'sysinfo': {
+                const mem = (performance as unknown as { memory?: { jsHeapSizeLimit: number } }).memory;
                 push([echo, {
                     type: 'output', text: [
                         'System Information:',
                         `  OS:        CartoonOS v2.0`,
                         `  Browser:   ${navigator.userAgent.split('(')[0].trim()}`,
                         `  Platform:  ${navigator.platform}`,
-                        `  RAM:       ${(performance as unknown as { memory?: { jsHeapSizeLimit: number } }).memory?.jsHeapSizeLimit
-                            ? Math.round((performance as unknown as { memory: { jsHeapSizeLimit: number } }).memory.jsHeapSizeLimit / 1024 / 1024) + ' MB JS Heap'
+                        `  RAM:       ${mem?.jsHeapSizeLimit
+                            ? Math.round(mem.jsHeapSizeLimit / 1024 / 1024) + ' MB JS Heap'
                             : 'N/A'}`,
                         `  Time:      ${new Date().toLocaleTimeString()}`,
                     ].join('\n')
                 }]);
                 break;
+            }
 
             case 'neofetch':
                 push([echo, {
@@ -192,6 +195,3 @@ export const Terminal: React.FC = () => {
     );
 };
 
-function cn(...classes: (string | undefined | false)[]) {
-    return classes.filter(Boolean).join(' ');
-}

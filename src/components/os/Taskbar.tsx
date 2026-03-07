@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useOSStore } from '../../store/useOSStore';
 import { cn } from '../../utils/cn';
-import { FileText, Terminal, Settings, Globe } from 'lucide-react';
+import { FileText, Terminal, Settings, Globe, ShoppingBag, Code, Package, FileCode } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const APP_ICONS: Record<string, React.FC<{ size?: number }>> = {
@@ -9,6 +9,8 @@ const APP_ICONS: Record<string, React.FC<{ size?: number }>> = {
     terminal: ({ size = 16 }) => <Terminal size={size} />,
     browser: ({ size = 16 }) => <Globe size={size} />,
     settings: ({ size = 16 }) => <Settings size={size} />,
+    appstore: ({ size = 16 }) => <ShoppingBag size={size} />,
+    codeeditor: ({ size = 16 }) => <Code size={size} />,
 };
 
 const APP_COLORS: Record<string, string> = {
@@ -16,6 +18,15 @@ const APP_COLORS: Record<string, string> = {
     terminal: 'bg-neo-blue',
     browser: 'bg-neo-pink',
     settings: 'bg-neo-green',
+    appstore: 'bg-purple-300',
+    codeeditor: 'bg-orange-300',
+};
+
+const getAppInfo = (id: string): { icon: React.FC<{ size?: number }>; color: string } => {
+    if (APP_ICONS[id]) return { icon: APP_ICONS[id], color: APP_COLORS[id] };
+    if (id.startsWith('aex_')) return { icon: Package, color: 'bg-neo-yellow' };
+    if (id.startsWith('editor_')) return { icon: FileCode, color: 'bg-neo-blue' };
+    return { icon: FileText, color: 'bg-gray-200' };
 };
 
 export const Taskbar: React.FC = () => {
@@ -52,7 +63,7 @@ export const Taskbar: React.FC = () => {
                 {/* Open app buttons */}
                 <AnimatePresence>
                     {openApps.map(app => {
-                        const Icon = APP_ICONS[app.id];
+                        const { icon: Icon, color } = getAppInfo(app.id);
                         const isFocused = focusedWindowId === app.id && !app.isMinimized;
                         return (
                             <motion.button
@@ -70,11 +81,9 @@ export const Taskbar: React.FC = () => {
                                     app.isMinimized && 'opacity-60'
                                 )}
                             >
-                                {Icon && (
-                                    <div className={cn('p-1 rounded border border-black', APP_COLORS[app.id] || 'bg-gray-200')}>
-                                        <Icon size={12} />
-                                    </div>
-                                )}
+                                <div className={cn('p-1 rounded border border-black', color)}>
+                                    <Icon size={12} />
+                                </div>
                                 <span className="max-w-[100px] truncate">{app.title}</span>
                             </motion.button>
                         );

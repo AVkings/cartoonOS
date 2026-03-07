@@ -28,15 +28,20 @@ export function parseAEX(source: string): ParsedAEX {
   // Split by ---SECTION--- markers
   const sectionPattern = /---(\w+)---/g;
   const sections: Record<string, string> = {};
-  let m: RegExpExecArray | null;
+  
+  // Find all markers and their positions
+  const markers: { name: string; start: number; end: number }[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = sectionPattern.exec(source)) !== null) {
+    markers.push({ name: match[1], start: match.index, end: match.index + match[0].length });
+  }
 
-  while ((m = sectionPattern.exec(source)) !== null) {
-    const sectionName = m[1];
-    const start = m.index + m[0].length;
-    const nextMatch = sectionPattern.exec(source);
-    const end = nextMatch ? nextMatch.index : source.length;
-    sections[sectionName] = source.slice(start, end).trim();
-    if (nextMatch) sectionPattern.lastIndex = nextMatch.index; // reset
+  // Extract content between markers
+  for (let i = 0; i < markers.length; i++) {
+    const current = markers[i];
+    const next = markers[i + 1];
+    const contentEnd = next ? next.start : source.length;
+    sections[current.name] = source.slice(current.end, contentEnd).trim();
   }
 
   // Fallback: try simple split

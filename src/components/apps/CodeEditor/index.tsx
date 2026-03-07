@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { buildAEXDocument, parseAEX } from '../../../utils/aexRuntime';
 import { useFileStore } from '../../../store/useFileStore';
-import { Save, Play, FileCode, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { Save, Play, FileCode, Info, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { useOSStore } from '../../../store/useOSStore';
 
 const STARTER_TEMPLATE = `@app "My App"
 @version "1.0"
@@ -60,11 +61,16 @@ function greet() {
   print('Click #' + clicks);
 }
 
+function print(msg) {
+  console.log(msg);
+}
+
 print('App loaded!');
 `;
 
 export const CodeEditor: React.FC<{ fileId?: string }> = ({ fileId }) => {
     const { files, saveFile } = useFileStore();
+    const { openWindow } = useOSStore();
 
     // Initial content and name computed during first render
     const initialCode = fileId && files[fileId] ? files[fileId].content : STARTER_TEMPLATE;
@@ -91,6 +97,12 @@ export const CodeEditor: React.FC<{ fileId?: string }> = ({ fileId }) => {
         const name = fileName.endsWith('.aex') ? fileName : fileName + '.aex';
         saveFile(id, name, code, 'aex');
         setSaved(true);
+        return id;
+    };
+
+    const handleRunExternal = () => {
+        const id = handleSave();
+        openWindow(id, `🚀 ${fileName.replace('.aex', '')}`);
     };
 
     return (
@@ -121,9 +133,17 @@ export const CodeEditor: React.FC<{ fileId?: string }> = ({ fileId }) => {
                 </button>
                 <button
                     onClick={handleRun}
-                    className="flex items-center gap-1.5 px-4 py-1.5 border-[3px] border-black rounded-lg bg-neo-pink font-black text-sm shadow-[2px_2px_0_0_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
+                    title="Preview in side panel"
+                    className="flex items-center gap-1.5 px-3 py-1.5 border-[3px] border-black rounded-lg bg-white font-black text-sm shadow-[2px_2px_0_0_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
                 >
-                    <Play size={14} /> Run
+                    <Play size={14} /> Preview
+                </button>
+                <button
+                    onClick={handleRunExternal}
+                    title="Run as standalone window"
+                    className="flex items-center gap-1.5 px-3 py-1.5 border-[3px] border-black rounded-lg bg-neo-pink font-black text-sm shadow-[2px_2px_0_0_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
+                >
+                    <ExternalLink size={14} /> Run
                 </button>
             </div>
 
